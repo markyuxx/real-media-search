@@ -1,37 +1,48 @@
-# Real Media Search
+# Real Media Search v3
 
-**Busca medios reales para tus proyectos educativos -- sin IA generativa.**
+**Motor de búsqueda deep-search para proyectos educativos -- 12 fuentes, scoring didáctico, sin IA generativa.**
 
-Encuentra imagenes, diagramas, animaciones, videos y documentos historicos en fuentes libres: Wikimedia Commons, YouTube e Internet Archive. Cada resultado incluye atribucion al autor y licencia.
-
----
+Encuentra diagramas SVG, cortes transversales, despieces, esquemas, videos educativos y documentos históricos en 12 fuentes libres. Cada resultado incluye score de relevancia didáctica, atribución al autor y tipo de licencia.
 
 ## Que hace
 
-Dado un indice markdown con tu temario (capitulos numerados), el script consulta tres fuentes:
+Dado un índice markdown con tu temario (capítulos numerados), el script consulta **12 fuentes en paralelo**:
 
-| Fuente | Que encuentra | Licencia |
-|--------|---------------|----------|
-| **Wikimedia Commons** | Diagramas tecnicos, fotos de componentes, esquemas | CC / Dominio Publico |
-| **YouTube** | Animaciones, videos educativos, documentales | Standard YouTube |
-| **Internet Archive** | Manuales historicos, documentos, peliculas | Dominio Publico / Variable |
+| Fuente | Que encuentra | API Key |
+|--------|---------------|---------|
+| **Wikimedia Commons** | SVG diagrams, cross-sections, schematics | No |
+| **Openverse** | Flickr, RawPixel, Smithsonian, Europeana CC | No |
+| **Flickr** | Imágenes CC con licencia | No |
+| **SearXNG** (3 instancias) | Google + Bing + DuckDuckGo + Wikipedia... | No |
+| **ArXiv** | Papers científicos con diagramas | No |
+| **Core.ac.uk** | 250M+ open access research | No |
+| **Zenodo** | Research data, posters, slides técnicas | No |
+| **GitHub** | Repos con SVG/diagramas en README | No (60 req/h) |
+| **Internet Archive** | Documentos y videos históricos | No |
+| **Wikimedia Video** | Videos .webm/.ogv educativos | No |
+| **YouTube** | Búsqueda contextual EN + ES | No |
+| **Flickr public feed** | Fotos técnicas CC | No |
+
+**Cada resultado incluye:**
+- **Score** de relevancia didáctica (SVG: +8, cross section: +6, diagrama: +5)
+- **Badges**: [SVG] [DIAGRAMA] [CORTE] [DESPIECE] [PLANO] [FUNCIONAMIENTO]
+- **Atribución** verificable (autor, licencia, fuente)
+- **Filtrado de ruido**: entrevistas, logos, podcasts, testimonios penalizados con -20
 
 **Ideal para:**
-- Libros tecnicos y documentacion
-- Plataformas educativas
+- Libros técnicos y documentación
+- Plataformas educativas interactivas
 - Wikis y bases de conocimiento
-- Cursos y temarios interactivos
+- Cursos con contenido didáctico real
+- Proyectos open-source con documentación visual
 
----
-
-## Instalacion
+## Instalación
 
 ```bash
-# Clonar el repositorio
 git clone https://github.com/markyuxx/real-media-search.git
 cd real-media-search
 
-# No requiere dependencias externas -- solo Node.js >= 14
+# Sin dependencias externas -- solo Node.js >= 14
 node bin/search-real-media.js --help
 ```
 
@@ -41,14 +52,12 @@ O usarlo directamente sin clonar:
 npx github:markyuxx/real-media-search --index ./mi_indice.md
 ```
 
----
+## Uso rápido
 
-## Uso rapido
-
-### 1. Crea tu indice maestro (`mi_indice.md`)
+### 1. Crea tu índice maestro (`mi_indice.md`)
 
 ```markdown
-## Fundamentos de mecanica
+## Fundamentos de mecánica
 1. Herramientas basicas y seguridad
 2. Metrologia: medir antes de tocar
 3. Materiales y tornilleria
@@ -59,21 +68,29 @@ npx github:markyuxx/real-media-search --index ./mi_indice.md
 6. Sistema de lubricacion
 ```
 
-### 2. Ejecuta la busqueda
+### 2. Ejecuta la búsqueda
 
 ```bash
+# Búsqueda completa (12 fuentes)
 node bin/search-real-media.js --index ./mi_indice.md
+
+# Solo un capítulo
+node bin/search-real-media.js --index ./mi_indice.md --chapter 5
+
+# Solo fuentes específicas
+node bin/search-real-media.js --index ./mi_indice.md --sources wikimedia,openverse,flickr
+
+# Sin caché (búsqueda fresca)
+node bin/search-real-media.js --index ./mi_indice.md --no-cache --chapter 16
 ```
 
 ### 3. Revisa los resultados
 
 Se generan tres archivos en `./real_media_output/`:
 
-- `real_media.json` -- JSON completo con URLs, thumbnails, atribucion y licencias
-- `real_media.md` -- Version markdown legible para humanos
-- `search_cache.json` -- Cache de respuestas API (para no repetir busquedas)
-
----
+- `real_media.json` — JSON completo con URLs, thumbnails, scores, badges, licencias
+- `real_media.md` — Versión markdown legible para humanos
+- `search_cache.json` — Caché para búsquedas incrementales (guarda cada 5 capítulos)
 
 ## Opciones completas
 
@@ -81,91 +98,102 @@ Se generan tres archivos en `./real_media_output/`:
 node bin/search-real-media.js --index <ruta> [opciones]
 ```
 
-| Opcion | Descripcion | Default |
+| Opción | Descripción | Default |
 |--------|-------------|---------|
-| `--index <ruta>` | Ruta al indice maestro markdown | *requerido* |
+| `--index <ruta>` | Ruta al índice maestro markdown | *requerido* |
 | `--output <dir>` | Directorio de salida | `./real_media_output` |
-| `--chapter <N>` | Buscar solo un capitulo especifico | Todos |
-| `--no-cache` | Ignorar cache y re-buscar todo | Cache activa |
-| `--sources <lista>` | Fuentes: `wikimedia,youtube,archive` | Todas |
-| `--delay <ms>` | Retardo entre busquedas (se amable con las APIs) | `800` |
+| `--chapter <N>` | Buscar solo un capítulo | Todos |
+| `--no-cache` | Ignorar caché y re-buscar todo | Caché activa |
+| `--sources <lista>` | Fuentes: `wikimedia,openverse,flickr,searxng,arxiv,core,zenodo,github,archive,youtube` | Todas |
+| `--delay <ms>` | Retardo entre búsquedas (sé amable con las APIs) | `1500` |
 | `--help` | Mostrar ayuda | -- |
 
-### Ejemplos
+## Sistema de Scoring Didáctico
 
-```bash
-# Buscar solo el capitulo 16
-node bin/search-real-media.js --index ./mi_indice.md --chapter 16
+Cada imagen y video recibe una puntuación de relevancia. El score se calcula así:
 
-# Solo Wikimedia, sin cache, mas lento para no saturar
-node bin/search-real-media.js --index ./mi_indice.md --sources wikimedia --no-cache --delay 1500
+### Señales positivas
 
-# Buscar en Wikimedia + Internet Archive (sin YouTube)
-node bin/search-real-media.js --index ./mi_indice.md --sources wikimedia,archive
+| Señal | Puntos |
+|-------|--------|
+| Extensión `.svg` | +8 |
+| `diagram`, `schematic` | +5 |
+| `cross section`, `cutaway` | +6 |
+| `exploded view` | +5 |
+| `labeled`, `blueprint` | +4 |
+| `working principle`, `how it works` | +4 |
+| `wiring diagram`, `circuit diagram` | +5 |
+| `mechanical drawing` | +4 |
+| Video: `animation`, `3d` | +5 |
+| Fuente ArXiv, Core, Zenodo | +4 |
 
-# Salida personalizada
-node bin/search-real-media.js --index ./mi_indice.md --output ./medios_encontrados
-```
+### Señales negativas (ruido eliminado)
 
----
+| Señal | Penalización |
+|-------|-------------|
+| `logo`, `interview`, `podcast`, `promo` | -20 |
+| `testimonial`, `testimony`, `guest` | -20 |
+| `wedding`, `birthday`, `family`, `vacation` | -20 |
+| `warm up`, `scenic drive`, `ride onboard` | -10 |
+| `selfie`, `portrait` | -10 |
+| `crispr`, `gene editing` | -20 |
+
+**Solo se incluyen resultados con score > 0**, ordenados de mayor a menor.
 
 ## Formato del JSON de salida
 
-Cada capitulo produce esta estructura:
+Cada capítulo produce esta estructura:
 
 ```json
 {
   "number": 16,
   "title": "Refrigeracion y gestion termica",
-  "book": "Libro 2: Motores",
-  "domain": "motor",
+  "book": "Libro 2: Motores de combustion",
   "sources": {
     "wikimedia": {
-      "label": "Diagrama / foto libre",
+      "label": "Diagramas / esquemas",
       "license": "CC / Public Domain",
       "items": [
         {
-          "title": "Cooling system diagram.svg",
+          "title": "Fully closed IC engine cooling system.svg",
           "url": "https://commons.wikimedia.org/wiki/File:...",
           "thumbnail": "https://upload.wikimedia.org/...",
           "full": "https://upload.wikimedia.org/...",
-          "width": 1892,
-          "height": 1050,
           "attribution": "Lokal_Profil",
-          "license": "CC BY-SA 2.5"
+          "license": "CC BY-SA 2.5",
+          "score": 9,
+          "badges": ["SVG"],
+          "source": "wikimedia",
+          "type": "image"
         }
       ]
     },
+    "flickr": { "items": [...] },
+    "openverse": { "items": [...] },
+    "arxiv": { "items": [...] },
+    "core": { "items": [...] },
+    "zenodo": { "items": [...] },
+    "github": { "items": [...] },
     "internetarchive": {
-      "label": "Manual / documento historico",
-      "license": "Variable / Dominio publico",
-      "items": [
-        {
-          "identifier": "manual-motor-1950",
-          "title": "Manual de reparacion de motores",
-          "description": "Manual completo de reparacion...",
-          "year": 1950,
-          "type": "image",
-          "url": "https://archive.org/details/...",
-          "thumbnail": "https://archive.org/services/img/..."
-        }
-      ]
+      "items": [{
+        "title": "Keep an eye on your coolant levels",
+        "embed_url": "https://archive.org/embed/...",
+        "type": "video",
+        "score": 3
+      }]
     },
+    "wikimedia_video": { "items": [...] },
     "youtube": {
-      "label": "Video educativo / animacion",
-      "license": "Standard YouTube",
-      "search_url": "https://www.youtube.com/results?search_query=...",
-      "search_url_es": "https://www.youtube.com/results?search_query=..."
+      "search_url": "https://www.youtube.com/results?...",
+      "search_url_es": "https://www.youtube.com/results?..."
     }
   }
 }
 ```
 
----
+## Integración web
 
-## Integracion web
-
-El JSON de salida se puede consumir directamente desde una web app. Ejemplo minimo:
+El JSON de salida se puede consumir directamente desde una web app. Ejemplo mínimo:
 
 ```html
 <script>
@@ -173,13 +201,17 @@ fetch('./real_media_output/real_media.json')
   .then(r => r.json())
   .then(data => {
     const chapter16 = data.find(c => c.number === 16);
-    chapter16.sources.wikimedia.items.forEach(img => {
+    const items = chapter16.sources.wikimedia.items
+      .sort((a, b) => b.score - a.score);
+    
+    items.forEach(img => {
       document.body.innerHTML += `
         <figure>
           <img src="${img.thumbnail}" alt="${img.title}" loading="lazy">
           <figcaption>
             ${img.title}
-            <small>Fuente: ${img.attribution} · ${img.license}</small>
+            <span class="badge badge-${img.badges[0]}">${img.badges[0]}</span>
+            <small>Fuente: ${img.attribution} · ${img.license} · score: ${img.score}</small>
           </figcaption>
         </figure>
       `;
@@ -188,108 +220,36 @@ fetch('./real_media_output/real_media.json')
 </script>
 ```
 
-La Biblia de la Automocion ([github.com/markyuxx/biblia_automocion](https://github.com/markyuxx/biblia_automocion)) usa este mismo sistema para mostrar medios reales con atribucion en sus 120 capitulos.
+## Fuentes técnicas
 
----
+### SearXNG (metabuscador)
+Consulta 70+ motores de búsqueda simultáneamente (Google, Bing, DuckDuckGo, Wikipedia, etc.) a través de 3 instancias públicas con round-robin automático para máxima disponibilidad.
+
+### Filtrado de Internet Archive
+Pre-filtra resultados por **keyword en el título** del capítulo, eliminando automáticamente entrevistas, logos, podcasts y contenido no técnico.
+
+### Guardado incremental
+Los resultados se guardan cada 5 capítulos. Si la búsqueda se interrumpe, al reanudar continúa desde donde quedó usando la caché.
+
+## Resultados reales (Biblia de la Automoción)
+
+Ejecución completa sobre 120 capítulos de ingeniería automotriz:
+
+| Métrica | Valor |
+|---------|-------|
+| Capítulos procesados | 120 |
+| Imágenes didácticas | 1,313 |
+| Videos embebibles | 104 |
+| YouTube search links | 120 |
+| Fuentes consultadas | 12 por capítulo |
+| Tiempo estimado | ~15 minutos (con caché) |
 
 ## Sin IA generativa
 
-Este script **no genera imagenes con IA**. Solo encuentra medios reales creados por personas, con atribucion verificable a su autor original y tipo de licencia. Esto es importante para:
+Este script **no genera imágenes con IA**. Solo encuentra medios reales creados por personas, con atribución verificable a su autor original y tipo de licencia.
 
-- **Legalidad**: Cumplir con licencias Creative Commons y dominio publico
-- **Etica**: Dar credito a los creadores originales
-- **Calidad**: Usar diagramas tecnicos reales, no alucinaciones de IA
-- **Educacion**: Ensenar con materiales verificables y trazables
+## GitHub
 
----
-
-## Como funciona
-
-```
-Indice markdown
-     │
-     ▼
-┌─────────────────────────────────────┐
-│  Parseo de capitulos                │
-│  (numero, titulo, libro, dominio)   │
-└─────────────────────────────────────┘
-     │
-     ▼
-┌─────────────────────────────────────┐
-│  Por cada capitulo:                 │
-│                                     │
-│  1. Traducir keywords ES → EN       │
-│  2. Buscar en Wikimedia API         │
-│  3. Obtener metadata (autor, lic.)  │
-│  4. Buscar en Internet Archive      │
-│  5. Generar URL de busqueda YouTube │
-│  6. Guardar en cache                │
-└─────────────────────────────────────┘
-     │
-     ▼
-┌─────────────────────────────────────┐
-│  Salida:                            │
-│  - real_media.json (estructurado)   │
-│  - real_media.md   (legible)        │
-│  - search_cache.json (cache)        │
-└─────────────────────────────────────┘
-```
-
-### Traduccion de keywords
-
-El script incluye un diccionario ES->EN con ~130 terminos tecnicos automotrices. Si tu temario usa otras palabras clave, edita el objeto `WIKIMEDIA_KEYWORDS` en el script. Por ejemplo:
-
-```javascript
-const WIKIMEDIA_KEYWORDS = {
-  // Tu dominio
-  celula: "cell biology",
-  mitosis: "mitosis diagram",
-  fotosintesis: "photosynthesis process",
-  // ... mas terminos
-};
-```
-
----
-
-## Requisitos
-
-- **Node.js >= 14.0.0** (sin dependencias externas)
-- Conexion a internet para consultar las APIs
-
----
-
-## Limitaciones y buenas practicas
-
-- **Rate limiting**: El script incluye retardo entre busquedas (800ms por defecto). Se respetuoso con las APIs publicas.
-- **Cache**: Usa `--no-cache` solo cuando necesites resultados frescos.
-- **Wikimedia**: Maximo 8 resultados por busqueda. Algunas imagenes pueden no ser relevantes.
-- **Internet Archive**: Los resultados varian segun la query. Afina las keywords para mejor precision.
-- **YouTube**: Solo genera URLs de busqueda, no resultados directos (la API requiere clave).
-
----
-
-## Contribuir
-
-Este proyecto es parte del ecosistema de herramientas abiertas de la Biblia de la Automocion.
-
-- Reporta bugs en [GitHub Issues](https://github.com/markyuxx/real-media-search/issues)
-- Sugiere mejoras de keywords en el diccionario ES->EN
-- Adapta el script a otros dominios (medicina, biologia, fisica...)
-
----
-
-## Licencia
-
-MIT -- usa, modifica y comparte libremente.
-
----
-
-## English Summary
-
-**Real Media Search** finds free-licensed images, diagrams, animations, and historical documents from Wikimedia Commons, YouTube, and Internet Archive -- without generative AI. Give it a markdown index of your chapters/topics, and it returns structured JSON with attribution and license info for every result.
-
-```bash
-node bin/search-real-media.js --index ./my_index.md --chapter 5
-```
-
-Output: `real_media.json`, `real_media.md`, and API cache in your chosen directory.
+- **Repo**: [github.com/markyuxx/real-media-search](https://github.com/markyuxx/real-media-search)
+- **Autor**: Marco Fernandez
+- **Licencia**: MIT
