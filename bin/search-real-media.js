@@ -111,7 +111,7 @@ async function fetchSearXNG(q,cat,retry=0){
 }
 
 async function wmImageCat(q,max){
-  try{const j=await fetchJSON(`https://commons.wikimedia.org/w/api.php?${new URLSearchParams({action:"query",list:"search",srsearch:q+' incategory:"SVG_diagrams"',srnamespace:"6",srlimit:String(max),format:"json",origin:"*"})}`,2,10000);return j;}catch(_){return{};}
+  try{const j=await fetchJSON(`https://commons.wikimedia.org/w/api.php?${new URLSearchParams({action:"query",list:"search",srsearch:q,srnamespace:"6",srlimit:String(max),format:"json",origin:"*"})}`,2,10000);return j;}catch(_){return{};}
 }
 async function wmImageAny(q,max){
   try{const j=await fetchJSON(`https://commons.wikimedia.org/w/api.php?${new URLSearchParams({action:"query",list:"search",srsearch:q,srnamespace:"6",srlimit:String(max),format:"json",origin:"*"})}`,2,10000);return j;}catch(_){return{};}
