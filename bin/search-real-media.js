@@ -5,168 +5,26 @@ const path = require("path");
 const https = require("https");
 const http = require("http");
 
-const USER_AGENT = "RealMediaSearch/1.0 (educational; open-source media finder)";
-
-const DOMAIN_RULES = [
-  [1, 8, "fundamentos"],
-  [9, 20, "motor"],
-  [21, 29, "combustion"],
-  [30, 37, "sobrealimentacion"],
-  [38, 47, "electronica"],
-  [48, 56, "transmision"],
-  [57, 66, "chasis"],
-  [67, 74, "dinamica"],
-  [75, 83, "electrificacion"],
-  [84, 100, "calibracion"],
-  [101, 112, "preparacion"],
-  [113, 120, "profesion"]
-];
+const USER_AGENT = "RealMediaSearch/2.0 (mega-search engine; educational)";
 
 const SOURCE_CONFIG = {
-  wikimedia: {
-    name: "Wikimedia Commons",
-    base: "https://commons.wikimedia.org/w/api.php",
-    license: "CC / Public Domain",
-    label: "Diagrama / foto libre",
-    priority: 1
-  },
-  youtube: {
-    name: "YouTube",
-    base: "https://www.youtube.com/results",
-    license: "Standard YouTube",
-    label: "Video educativo / animacion",
-    priority: 2
-  },
-  internetarchive: {
-    name: "Internet Archive",
-    base: "https://archive.org/advancedsearch.php",
-    license: "Variable / Dominio publico",
-    label: "Manual / documento historico",
-    priority: 3
-  }
+  wikimedia: { name: "Wikimedia Commons", base: "https://commons.wikimedia.org/w/api.php", license: "CC / Public Domain" },
+  openverse: { name: "Openverse", base: "https://api.openverse.org/v1", license: "CC / Public Domain" },
+  wikimedia_video: { name: "Wikimedia Video", base: "https://commons.wikimedia.org/w/api.php", license: "CC / Public Domain" },
+  internetarchive: { name: "Internet Archive", base: "https://archive.org/advancedsearch.php", license: "Dominio publico" },
+  youtube: { name: "YouTube", base: "https://www.youtube.com/results", license: "Standard YouTube" }
 };
 
-const WIKIMEDIA_KEYWORDS = {
-  turbo: "turbocharger",
-  refrigeracion: "engine cooling system",
-  lubricacion: "engine lubrication oil",
-  compresion: "compression piston engine",
-  obd: "OBD2 diagnostic",
-  frenos: "brake disc caliper",
-  suspension: "car suspension",
-  neumaticos: "tyre",
-  neumatico: "tyre",
-  electricidad: "automotive electrical",
-  bateria: "car battery alternator",
-  inyeccion: "fuel injection",
-  encendido: "ignition spark plug",
-  hibridos: "hybrid vehicle",
-  distribucion: "timing belt engine",
-  admision: "intake manifold engine",
-  escape: "exhaust catalyst",
-  transmision: "gearbox transmission",
-  diferencial: "differential gear",
-  aerodinamica: "automotive aerodynamics",
-  chasis: "car chassis",
-  direccion: "steering system car",
-  embrague: "clutch",
-  calibracion: "ECU engine",
-  mapa: "compressor map turbo",
-  motor: "engine",
-  arquitectura: "vehicle architecture",
-  herramienta: "workshop tools",
-  metrologia: "measurement automotive",
-  material: "automotive materials",
-  tornilleria: "bolt fastener automotive",
-  lubricante: "engine oil fluid",
-  lectura: "service manual",
-  ciclo: "engine cycle otto diesel",
-  bloque: "engine block cylinder head",
-  pistones: "piston connecting rod",
-  levas: "camshaft engine",
-  mariposa: "throttle body",
-  catalizadores: "catalytic converter",
-  fugas: "engine leak compression",
-  averias: "engine failure",
-  reconstruccion: "engine rebuild",
-  estequiometria: "air fuel ratio lambda",
-  gasolina: "gasoline engine",
-  diesel: "diesel engine",
-  bombas: "fuel pump injection",
-  sensores: "automotive sensor",
-  knock: "knock sensor engine",
-  egr: "EGR valve",
-  pcv: "PCV valve",
-  intercoolers: "intercooler",
-  wastegate: "turbo wastegate",
-  lag: "turbo lag",
-  fiabilidad: "turbo reliability",
-  sobrepresion: "turbo overboost",
-  modulos: "automotive ECU module",
-  can: "CAN bus automotive",
-  osciloscopio: "oscilloscope automotive",
-  reprogramacion: "ECU coding",
-  ciberseguridad: "automotive cybersecurity",
-  cajas: "gearbox manual",
-  convertidor: "torque converter automatic",
-  dct: "dual clutch transmission",
-  cvt: "CVT transmission",
-  palieres: "driveshaft CV joint",
-  traccion: "vehicle drivetrain",
-  relaciones: "gear ratio transmission",
-  mantenimiento: "transmission maintenance",
-  geometria: "chassis geometry",
-  muelles: "coil spring suspension",
-  silentblocks: "suspension bushing",
-  alineacion: "wheel alignment",
-  abs: "ABS brake system",
-  esp: "electronic stability control",
-  peso: "vehicle weight distribution",
-  setup: "vehicle setup track",
-  resistencia: "aerodynamic drag",
-  sustentacion: "downforce aerodynamics",
-  splitters: "front splitter",
-  difusores: "rear diffuser",
-  flujo: "airflow vehicle",
-  dinamica: "vehicle dynamics",
-  subviraje: "understeer oversteer",
-  telemetria: "racing telemetry",
-  interpretacion: "data analysis racing",
-  motores: "electric motor automotive",
-  baterias: "battery pack electric vehicle",
-  regeneracion: "regenerative braking",
-  carga: "EV charging",
-  adas: "ADAS driver assistance",
-  vehiculo: "software defined vehicle",
-  logs: "engine data log tuning",
-  banco: "dyno dynamometer",
-  wideband: "wideband lambda sensor",
-  egt: "EGT exhaust temperature",
-  stage: "stage tuning",
-  homologacion: "vehicle homologation",
-  etica: "responsible tuning",
-  admisiones: "performance intake",
-  inyectores: "fuel injector upgrade",
-  forjados: "forged engine internals",
-  coilover: "coilover suspension",
-  track: "track day preparation",
-  rally: "rally car preparation",
-  presupuesto: "project budget automotive",
-  metodo: "diagnostic method",
-  documentar: "workshop documentation",
-  recambios: "auto parts quality",
-  restauracion: "car restoration",
-  historia: "automotive history",
-  aprender: "automotive learning"
-};
+const DOMAIN_RULES = [[1,8,"fundamentos"],[9,20,"motor"],[21,29,"combustion"],[30,37,"sobrealimentacion"],[38,47,"electronica"],[48,56,"transmision"],[57,66,"chasis"],[67,74,"dinamica"],[75,83,"electrificacion"],[84,100,"calibracion"],[101,112,"preparacion"],[113,120,"profesion"]];
 
 function showHelp() {
   console.log(`
-  Real Media Search - Buscador de medios educativos sin IA generativa
-  ===================================================================
+  Real Media Search v2.0 - Buscador MEGA-INTENSIVO
+  ===============================================
 
-  Busca imagenes, diagramas, videos y documentos historicos en fuentes libres
-  (Wikimedia Commons, YouTube e Internet Archive) para cualquier temario tecnico.
+  Busca imagenes, diagramas Y VIDEOS en 5 fuentes:
+    Wikimedia Commons + Openverse + Wikimedia Video + Internet Archive + YouTube
+  Sin IA generativa. Atribucion verificable de fuente y licencia.
 
   USO:
     node search-real-media.js --index <ruta> [opciones]
@@ -174,41 +32,21 @@ function showHelp() {
   OPCIONES:
     --index <ruta>       Ruta al indice maestro markdown (requerido)
     --output <dir>       Directorio de salida (default: ./real_media_output)
-    --chapter <N>        Buscar solo un capitulo especifico
+    --chapter <N>        Buscar solo un capitulo
     --no-cache           Ignorar cache y re-buscar todo
-    --sources <lista>    Fuentes a usar: wikimedia,youtube,archive (default: todas)
-    --delay <ms>         Retardo entre busquedas en ms (default: 800)
+    --sources <lista>    Fuentes: wikimedia,openverse,wikimedia_video,archive,youtube
+    --delay <ms>         Retardo entre busquedas ms (default: 1000)
     --help               Mostrar esta ayuda
 
   FORMATO DEL INDICE:
-    El indice debe ser un archivo markdown con lineas como:
-      ## Nombre del libro/seccion
-      1. Titulo del capitulo 1
-      2. Titulo del capitulo 2
-
-  EJEMPLOS:
-    # Buscar todos los capitulos
-    node search-real-media.js --index ./mi_indice.md
-
-    # Buscar solo el capitulo 5
-    node search-real-media.js --index ./mi_indice.md --chapter 5
-
-    # Solo Wikimedia, sin cache
-    node search-real-media.js --index ./mi_indice.md --sources wikimedia --no-cache
-
-  SALIDA:
-    - real_media.json        Resultados completos en JSON
-    - real_media.md          Version markdown legible
-    - search_cache.json      Cache de respuestas API
-
-  SIN IA GENERATIVA:
-    Este script solo encuentra medios reales creados por humanos.
-    Cada resultado incluye atribucion al autor y tipo de licencia.
+    ## Nombre del libro
+    1. Titulo del capitulo 1
+    2. Titulo del capitulo 2
   `);
 }
 
 function parseArgs(argv) {
-  const args = { sources: null, delay: 800 };
+  const args = { sources: null, delay: 1000 };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--help" || argv[i] === "-h") { args.help = true; }
     else if (argv[i] === "--index" && argv[i + 1]) { args.index = argv[++i]; }
@@ -221,268 +59,145 @@ function parseArgs(argv) {
   return args;
 }
 
-function domainFor(number) {
-  return DOMAIN_RULES.find(([from, to]) => number >= from && number <= to) || DOMAIN_RULES[0];
-}
+function domainFor(number) { return DOMAIN_RULES.find(([a,b]) => number>=a && number<=b) || DOMAIN_RULES[0]; }
 
-function buildSearchQueries(chapter) {
-  const t = chapter.title.toLowerCase();
-  let wmQuery = chapter.title;
-  for (const [kw, en] of Object.entries(WIKIMEDIA_KEYWORDS)) {
-    if (t.includes(kw)) { wmQuery = en; break; }
-  }
-  const ytQueryEN = `${wmQuery} engineering how it works`;
-  const ytQuery = chapter.title.replace(/:/g, "").replace(/\s+/g, " ").trim();
-  return {
-    wikimedia: wmQuery,
-    wikimedia_es: chapter.title.replace(/:/g, "").replace(/\s+/g, " ").trim(),
-    youtube: ytQueryEN,
-    youtube_es: ytQuery,
-    archive: wmQuery
-  };
-}
-
-function fetchJSON(url, retries = 2) {
+function fetchJSON(url, retries = 3) {
   return new Promise((resolve, reject) => {
     const proto = url.startsWith("https") ? https : http;
     function attempt(remaining) {
       const req = proto.get(url, { headers: { "User-Agent": USER_AGENT } }, (res) => {
         let data = "";
-        res.on("data", (chunk) => { data += chunk; });
+        res.on("data", (c) => { data += c; });
         res.on("end", () => {
-          try {
-            const json = JSON.parse(data);
-            if (json.error) {
-              const msg = (json.error.info || json.error.code || "API error").slice(0, 100);
-              if (remaining > 0 && (msg.includes("busy") || msg.includes("throttl") || msg.includes("rate"))) {
-                const delay = (3 - remaining) * 1500 + Math.random() * 1000;
-                setTimeout(() => attempt(remaining - 1), delay);
-                return;
-              }
-              reject(new Error(msg));
-            } else {
-              resolve(json);
-            }
-          } catch (_) {
-            if (remaining > 0) { attempt(remaining - 1); }
-            else { reject(new Error("Invalid JSON response")); }
-          }
+          try { const json = JSON.parse(data); if (json.error) { reject(new Error((json.error.info || "API error").slice(0, 120))); } else resolve(json); }
+          catch (_) { if (remaining > 0) setTimeout(() => attempt(remaining - 1), 1000); else reject(new Error("Invalid JSON")); }
         });
       });
-      req.on("error", () => {
-        if (remaining > 0) { setTimeout(() => attempt(remaining - 1), 800); }
-        else { reject(new Error("Request failed")); }
-      });
-      req.setTimeout(12000, () => {
-        req.destroy();
-        if (remaining > 0) { setTimeout(() => attempt(remaining - 1), 800); }
-        else { reject(new Error("Request timeout")); }
-      });
+      req.on("error", () => { if (remaining > 0) setTimeout(() => attempt(remaining - 1), 800); else reject(new Error("Request failed")); });
+      req.setTimeout(18000, () => { req.destroy(); if (remaining > 0) setTimeout(() => attempt(remaining - 1), 800); else reject(new Error("Timeout")); });
     }
     attempt(retries);
   });
 }
 
-function wikimediaSearch(query) {
-  const params = new URLSearchParams({
-    action: "query", list: "search", srsearch: query,
-    srnamespace: "6", srlimit: "8", format: "json", origin: "*"
-  });
-  return fetchJSON(`${SOURCE_CONFIG.wikimedia.base}?${params.toString()}`);
+async function wikimediaImageSearch(query, max = 12) {
+  const p = new URLSearchParams({ action: "query", list: "search", srsearch: query, srnamespace: "6", srlimit: String(max), format: "json", origin: "*" });
+  return fetchJSON(`${SOURCE_CONFIG.wikimedia.base}?${p}`);
 }
 
-function wikimediaFileInfo(titles) {
-  if (!titles.length) return Promise.resolve({});
+async function wikimediaVideoSearch(query, max = 6) {
+  const p = new URLSearchParams({ action: "query", list: "search", srsearch: `${query} filetype:video`, srnamespace: "6", srlimit: String(max), format: "json", origin: "*" });
+  return fetchJSON(`${SOURCE_CONFIG.wikimedia_video.base}?${p}`);
+}
+
+async function wikimediaFileInfo(titles) {
+  if (!titles.length) return {};
   const batches = [];
   for (let i = 0; i < titles.length; i += 4) batches.push(titles.slice(i, i + 4));
-  async function fetchBatch(batch) {
-    const params = new URLSearchParams({
-      action: "query", prop: "imageinfo", titles: batch.join("|"),
-      iiprop: "url|size|extmetadata|user", iiurlwidth: "800", format: "json", origin: "*"
-    });
-    try {
-      const json = await fetchJSON(`${SOURCE_CONFIG.wikimedia.base}?${params.toString()}`);
-      return json.query ? json.query.pages : {};
-    } catch (_) { return {}; }
+  const pages = {};
+  for (const batch of batches) {
+    const p = new URLSearchParams({ action: "query", prop: "imageinfo", titles: batch.join("|"), iiprop: "url|size|extmetadata|user|mediatype", iiurlwidth: "800", format: "json", origin: "*" });
+    try { const j = await fetchJSON(`${SOURCE_CONFIG.wikimedia.base}?${p}`); if (j.query) Object.assign(pages, j.query.pages); } catch (_) {}
+    if (batches.length > 1) await sleep(200);
   }
-  async function fetchAll() {
-    const pages = {};
-    for (const batch of batches) {
-      const result = await fetchBatch(batch);
-      Object.assign(pages, result);
-      if (batches.length > 1) await sleep(200);
-    }
-    return { query: { pages } };
-  }
-  return fetchAll();
+  return pages;
 }
 
-function internetArchiveSearch(query, maxResults = 6) {
-  const q = encodeURIComponent(`(${query}) AND (mediatype:(image OR movies))`);
-  const params = new URLSearchParams({ q, fl: "identifier,title,description,year,mediatype", rows: String(maxResults), output: "json" });
-  return fetchJSON(`${SOURCE_CONFIG.internetarchive.base}?${params.toString()}`);
+async function openverseSearch(query, max = 10) {
+  const p = new URLSearchParams({ q: query, license: "cc0,by,by-sa,by-nc,by-nc-sa,pdm", page_size: String(max), source: "flickr,rawpixel,smithsonian", mature: "false" });
+  try { return await fetchJSON(`${SOURCE_CONFIG.openverse.base}/images/?${p}`); } catch (_) { return { results: [] }; }
 }
 
-function buildYoutubeSearchURL(query) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}+engineering+animation`;
+async function internetArchiveSearch(query, max = 8) {
+  const q = encodeURIComponent(`(${query}) AND (mediatype:movies OR mediatype:image)`);
+  const p = new URLSearchParams({ q, fl: "identifier,title,description,year,mediatype", rows: String(max), output: "json" });
+  return fetchJSON(`${SOURCE_CONFIG.internetarchive.base}?${p}`);
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+function buildYoutubeURL(query) { return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}+engineering+animation+explained`; }
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-function loadCache(cachePath) {
-  try {
-    if (fs.existsSync(cachePath)) return JSON.parse(fs.readFileSync(cachePath, "utf8"));
-  } catch (_) { /* ignore */ }
-  return {};
-}
-
-function saveCache(cachePath, cache) {
-  fs.mkdirSync(path.dirname(cachePath), { recursive: true });
-  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), "utf8");
-}
+function loadCache(p) { try { if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, "utf8")); } catch (_) {} return {}; }
+function saveCache(p, c) { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, JSON.stringify(c, null, 2), "utf8"); }
 
 function parseIndex(markdown) {
-  const chapters = [];
-  let currentBook = "";
-  markdown.split(/\r?\n/).forEach((line) => {
-    const bookMatch = line.match(/^##\s+(.+)$/);
-    if (bookMatch) currentBook = bookMatch[1].trim();
-    const chMatch = line.match(/^(\d+)\.\s+(.+)$/);
-    if (!chMatch) return;
-    chapters.push({
-      number: Number(chMatch[1]),
-      title: chMatch[2].trim(),
-      book: currentBook,
-      domain: domainFor(Number(chMatch[1]))[2]
-    });
+  const ch = [];
+  let book = "";
+  markdown.split(/\r?\n/).forEach((l) => {
+    const bm = l.match(/^##\s+(.+)$/);
+    if (bm) book = bm[1].trim();
+    const cm = l.match(/^(\d+)\.\s+(.+)$/);
+    if (cm) ch.push({ number: Number(cm[1]), title: cm[2].trim(), book, domain: domainFor(Number(cm[1]))[2] });
   });
-  return chapters;
+  return ch;
 }
 
 async function searchChapter(chapter, activeSources) {
-  const queries = buildSearchQueries(chapter);
-  const result = {
-    number: chapter.number, title: chapter.title,
-    book: chapter.book, domain: chapter.domain, sources: {}
-  };
+  const t = chapter.title.toLowerCase();
+  let wmQ = chapter.title;
+  const kws = { turbo:"turbocharger", refrigeracion:"engine cooling system", motor:"engine", frenos:"brake disc caliper", suspension:"car suspension", transmision:"gearbox transmission", inyeccion:"fuel injection", encendido:"ignition spark plug", lubricacion:"engine lubrication oil", compresion:"compression piston engine", diferencial:"differential gear", aerodinamica:"automotive aerodynamics", chasis:"car chassis", direccion:"steering system", embrague:"clutch", bateria:"car battery alternator", hibridos:"hybrid vehicle", obd:"OBD2 diagnostic", neumaticos:"tyre", distribucion:"timing belt", admision:"intake manifold", escape:"exhaust catalyst", calibracion:"ECU engine tun", sensores:"automotive sensor", cajas:"gearbox manual", convertidor:"torque converter", abs:"ABS brake system", muelles:"coil spring suspension", cvt:"CVT transmission", motores:"electric motor", carga:"EV charging", adas:"driver assistance" };
+  for (const [kw, en] of Object.entries(kws)) { if (t.includes(kw)) { wmQ = en; break; } }
+  const titleES = chapter.title.replace(/:/g, "").replace(/\s+/g, " ").trim();
+  const result = { number: chapter.number, title: chapter.title, book: chapter.book, domain: chapter.domain, sources: {} };
 
   console.log(`  [${String(chapter.number).padStart(3, "0")}] Buscando: ${chapter.title}`);
 
   if (!activeSources || activeSources.includes("wikimedia")) {
     try {
-      const wmResponse = await wikimediaSearch(queries.wikimedia);
-      const wmPages = (wmResponse.query && wmResponse.query.search) ? wmResponse.query.search : [];
-      if (wmPages.length) {
-        const fileTitles = wmPages.map((p) => p.title).filter((t) => t.startsWith("File:"));
-        if (fileTitles.length) {
-          await sleep(400);
-          const info = await wikimediaFileInfo(fileTitles);
-          const items = [];
-          if (info.query && info.query.pages) {
-            for (const pageId of Object.keys(info.query.pages)) {
-              const page = info.query.pages[pageId];
-              const imageinfo = page.imageinfo && page.imageinfo[0];
-              if (!imageinfo) continue;
-              items.push({
-                title: page.title.replace(/^File:/, "").replace(/_/g, " "),
-                url: imageinfo.descriptionurl || `https://commons.wikimedia.org/wiki/${page.title.replace(/ /g, "_")}`,
-                thumbnail: imageinfo.thumburl || imageinfo.url || null,
-                full: imageinfo.url || null,
-                width: imageinfo.width || null,
-                height: imageinfo.height || null,
-                attribution: imageinfo.extmetadata && imageinfo.extmetadata.Artist
-                  ? imageinfo.extmetadata.Artist.value.replace(/<[^>]+>/g, "").trim()
-                  : "Wikimedia Commons",
-                license: imageinfo.extmetadata && imageinfo.extmetadata.LicenseShortName
-                  ? imageinfo.extmetadata.LicenseShortName.value : "Ver en Wikimedia"
-              });
-            }
-          }
-          result.sources.wikimedia = { label: SOURCE_CONFIG.wikimedia.label, license: SOURCE_CONFIG.wikimedia.license, items };
-          console.log(`    Wikimedia: ${items.length} archivos`);
-        } else {
-          result.sources.wikimedia = { label: SOURCE_CONFIG.wikimedia.label, license: SOURCE_CONFIG.wikimedia.license, items: [] };
-          console.log(`    Wikimedia: 0 archivos (${wmPages.length} paginas, sin archivos)`);
-        }
-      } else {
-        result.sources.wikimedia = { label: SOURCE_CONFIG.wikimedia.label, license: SOURCE_CONFIG.wikimedia.license, items: [] };
-        console.log(`    Wikimedia: 0 resultados`);
-      }
-    } catch (e) {
-      result.sources.wikimedia = { label: SOURCE_CONFIG.wikimedia.label, license: SOURCE_CONFIG.wikimedia.license, items: [], error: e.message };
-      console.log(`    Wikimedia: error (${e.message})`);
-    }
+      const wm = await wikimediaImageSearch(wmQ, 12);
+      const pages = (wm.query && wm.query.search) ? wm.query.search : [];
+      if (pages.length) {
+        const titles = pages.map((p) => p.title).filter((t) => t.startsWith("File:") && !/\.(ogv|webm|mp4)$/i.test(t));
+        if (titles.length) { await sleep(300); const info = await wikimediaFileInfo(titles); const items = []; for (const pid of Object.keys(info)) { const pg = info[pid], ii = pg.imageinfo && pg.imageinfo[0]; if (!ii || ii.mediatype === "VIDEO") continue; items.push({ title: pg.title.replace(/^File:/, "").replace(/_/g, " "), url: ii.descriptionurl || `https://commons.wikimedia.org/wiki/${pg.title.replace(/ /g, "_")}`, thumbnail: ii.thumburl || ii.url || null, full: ii.url || null, width: ii.width, height: ii.height, attribution: ii.extmetadata && ii.extmetadata.Artist ? ii.extmetadata.Artist.value.replace(/<[^>]+>/g, "").trim() : "Wikimedia", license: ii.extmetadata && ii.extmetadata.LicenseShortName ? ii.extmetadata.LicenseShortName.value : "CC", type: "image" }); } result.sources.wikimedia = { label: "Diagrama / foto libre", license: "CC / Public Domain", items }; console.log(`    Wikimedia: ${items.length} imagenes`); }
+        else { result.sources.wikimedia = { label: "Diagrama / foto libre", license: "CC / Public Domain", items: [] }; console.log("    Wikimedia: 0 imagenes"); }
+      } else { result.sources.wikimedia = { label: "Diagrama / foto libre", license: "CC / Public Domain", items: [] }; console.log("    Wikimedia: 0 resultados"); }
+    } catch (e) { result.sources.wikimedia = { label: "Diagrama / foto libre", license: "CC / Public Domain", items: [], error: e.message }; console.log("    Wikimedia: error"); }
+  }
+
+  if (!activeSources || activeSources.includes("openverse")) {
+    try {
+      const ov = await openverseSearch(wmQ, 10);
+      const ovr = (ov.results || []).slice(0, 8);
+      if (ovr.length) { const items = ovr.map((r) => ({ title: r.title || "Imagen", url: r.foreign_landing_url || r.url || "#", thumbnail: r.thumbnail || r.url || null, full: r.url || null, width: r.width, height: r.height, attribution: r.creator || "Openverse", license: r.license || "CC", type: "image" })); result.sources.openverse = { label: "Imagen CC verificada", license: "CC / Public Domain", items }; console.log(`    Openverse: ${items.length} imagenes`); }
+      else { result.sources.openverse = { label: "Imagen CC verificada", license: "CC / Public Domain", items: [] }; console.log("    Openverse: 0"); }
+    } catch (e) { result.sources.openverse = { label: "Imagen CC verificada", license: "CC / Public Domain", items: [], error: e.message }; console.log("    Openverse: error"); }
+  }
+
+  if (!activeSources || activeSources.includes("wikimedia_video")) {
+    try {
+      const wmv = await wikimediaVideoSearch(wmQ + " engine animation", 8);
+      const pages = (wmv.query && wmv.query.search) ? wmv.query.search : [];
+      if (pages.length) { const titles = pages.map((p) => p.title).filter((t) => t.startsWith("File:")); if (titles.length) { await sleep(300); const info = await wikimediaFileInfo(titles); const items = []; for (const pid of Object.keys(info)) { const pg = info[pid], ii = pg.imageinfo && pg.imageinfo[0]; if (!ii) continue; const isV = ii.mediatype === "VIDEO" || /\.(ogv|webm|mp4)$/i.test(pg.title); items.push({ title: pg.title.replace(/^File:/, "").replace(/_/g, " "), url: ii.descriptionurl || `https://commons.wikimedia.org/wiki/${pg.title.replace(/ /g, "_")}`, thumbnail: ii.thumburl || ii.url || null, full: ii.url || null, width: ii.width, height: ii.height, attribution: ii.extmetadata && ii.extmetadata.Artist ? ii.extmetadata.Artist.value.replace(/<[^>]+>/g, "").trim() : "Wikimedia", license: ii.extmetadata && ii.extmetadata.LicenseShortName ? ii.extmetadata.LicenseShortName.value : "CC", type: isV ? "video" : "image", embed_url: isV ? `https://commons.wikimedia.org/wiki/${pg.title.replace(/ /g, "_")}?embedplayer=yes` : null }); } result.sources.wikimedia_video = { label: "Video educativo libre", license: "CC / Public Domain", items }; console.log(`    Wikimedia Videos: ${items.length}`); }
+      else { result.sources.wikimedia_video = { label: "Video educativo libre", license: "CC / Public Domain", items: [] }; console.log("    Wikimedia Videos: 0"); } } else { result.sources.wikimedia_video = { label: "Video educativo libre", license: "CC / Public Domain", items: [] }; console.log("    Wikimedia Videos: 0 resultados"); }
+    } catch (e) { result.sources.wikimedia_video = { label: "Video educativo libre", license: "CC / Public Domain", items: [], error: e.message }; console.log("    Wikimedia Videos: error"); }
   }
 
   if (!activeSources || activeSources.includes("archive") || activeSources.includes("internetarchive")) {
     try {
-      const archiveResponse = await internetArchiveSearch(queries.archive);
-      if (archiveResponse.response && archiveResponse.response.docs && archiveResponse.response.docs.length) {
-        const items = archiveResponse.response.docs.slice(0, 6).map((doc) => ({
-          identifier: doc.identifier,
-          title: doc.title || doc.identifier,
-          description: (doc.description || "").slice(0, 200),
-          year: doc.year || "",
-          type: doc.mediatype || "image",
-          url: `https://archive.org/details/${doc.identifier}`,
-          thumbnail: `https://archive.org/services/img/${doc.identifier}`
-        }));
-        result.sources.internetarchive = { label: SOURCE_CONFIG.internetarchive.label, license: SOURCE_CONFIG.internetarchive.license, items };
-        console.log(`    Internet Archive: ${items.length} resultados`);
-      } else {
-        result.sources.internetarchive = { label: SOURCE_CONFIG.internetarchive.label, license: SOURCE_CONFIG.internetarchive.license, items: [] };
-        console.log(`    Internet Archive: 0 resultados`);
-      }
-    } catch (e) {
-      result.sources.internetarchive = { label: SOURCE_CONFIG.internetarchive.label, license: SOURCE_CONFIG.internetarchive.license, items: [], error: e.message };
-      console.log(`    Internet Archive: error (${e.message})`);
-    }
+      const ia = await internetArchiveSearch(wmQ, 8);
+      if (ia.response && ia.response.docs && ia.response.docs.length) { const items = ia.response.docs.slice(0, 6).map((d) => ({ identifier: d.identifier, title: d.title || d.identifier, description: (d.description || "").slice(0, 200), year: d.year || "", type: d.mediatype || "document", url: `https://archive.org/details/${d.identifier}`, thumbnail: `https://archive.org/services/img/${d.identifier}`, embed_url: d.mediatype === "movies" ? `https://archive.org/embed/${d.identifier}` : null })); result.sources.internetarchive = { label: "Documento / video historico", license: "Dominio publico", items }; console.log(`    Internet Archive: ${items.length}`); }
+      else { result.sources.internetarchive = { label: "Documento / video historico", license: "Dominio publico", items: [] }; console.log("    Internet Archive: 0"); }
+    } catch (e) { result.sources.internetarchive = { label: "Documento / video historico", license: "Dominio publico", items: [], error: e.message }; console.log("    Internet Archive: error"); }
   }
 
   if (!activeSources || activeSources.includes("youtube")) {
-    result.sources.youtube = {
-      label: SOURCE_CONFIG.youtube.label,
-      license: SOURCE_CONFIG.youtube.license,
-      search_url: buildYoutubeSearchURL(queries.youtube),
-      search_url_es: buildYoutubeSearchURL(queries.youtube_es)
-    };
-    console.log(`    YouTube: search URLs generadas`);
+    result.sources.youtube = { label: "Video / animacion", license: "Standard YouTube", search_url: buildYoutubeURL(wmQ + " engineering how it works"), search_url_es: buildYoutubeURL(titleES + " funcionamiento animacion") };
+    console.log("    YouTube: search URLs generadas");
   }
 
   return result;
 }
 
 function generateMarkdown(results) {
-  const lines = [];
-  lines.push("# Medios reales encontrados");
-  lines.push("");
-  lines.push("Medios encontrados sin IA generativa. Atribucion visible en cada resultado.");
-  lines.push(`Generado: ${new Date().toISOString().slice(0, 10)}`);
-  lines.push("");
-
-  for (const chapter of results) {
-    lines.push("---");
-    lines.push(`## ${String(chapter.number).padStart(3, "0")} - ${chapter.title}`);
-    lines.push(`**Libro**: ${chapter.book}`);
-    lines.push("");
-
-    for (const [sourceKey, source] of Object.entries(chapter.sources)) {
-      const config = SOURCE_CONFIG[sourceKey];
-      if (!config) continue;
-      lines.push(`### ${config.name} (${source.label})`);
-      if (source.search_url) lines.push(`- [Buscar en ${config.name}](${source.search_url})`);
-      if (source.search_url_es) lines.push(`- [Buscar en ${config.name} (ES)](${source.search_url_es})`);
-      if (source.items && source.items.length) {
-        for (const item of source.items) {
-          const title = item.title || "Sin titulo";
-          const url = item.url || "#";
-          const extra = item.license ? ` (${item.license})` : "";
-          lines.push(`- [${title}](${url})${extra}`);
-        }
-      }
-      if (!source.items && !source.search_url) lines.push("(sin resultados)");
+  const lines = ["# Medios reales encontrados", "", "Busqueda mega-intensiva: Wikimedia + Openverse + Video + Internet Archive + YouTube", `Generado: ${new Date().toISOString().slice(0, 10)}`, ""];
+  for (const ch of results) {
+    lines.push("---", `## ${String(ch.number).padStart(3, "0")} - ${ch.title}`, `**Libro**: ${ch.book}`, "");
+    for (const [sk, s] of Object.entries(ch.sources)) {
+      const cfg = SOURCE_CONFIG[sk]; if (!cfg) continue;
+      lines.push(`### ${cfg.name}`);
+      if (s.search_url) lines.push(`- [Buscar en ${cfg.name}](${s.search_url})`);
+      if (s.items && s.items.length) { for (const i of s.items) { const t = i.title || "Sin titulo", u = i.url || "#", l = i.license ? ` (${i.license})` : ""; lines.push(`- [${t}](${u})${l}${i.type === "video" ? " [VIDEO]" : ""}`); } }
+      if (!s.items && !s.search_url) lines.push("(sin resultados)");
       lines.push("");
     }
   }
@@ -491,103 +206,55 @@ function generateMarkdown(results) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-
-  if (args.help || !args.index) {
-    showHelp();
-    process.exit(args.help ? 0 : 1);
-  }
+  if (args.help || !args.index) { showHelp(); process.exit(args.help ? 0 : 1); }
 
   const INDEX_PATH = path.resolve(args.index);
   const OUT_DIR = path.resolve(args.output || "./real_media_output");
   const CACHE_PATH = path.join(OUT_DIR, "search_cache.json");
   const RESULT_PATH = path.join(OUT_DIR, "real_media.json");
-  const MD_PATH = path.join(OUT_DIR, "real_media.md");
 
-  if (!fs.existsSync(INDEX_PATH)) {
-    console.error(`Error: No se encuentra el indice: ${INDEX_PATH}`);
-    console.error("El indice debe ser un archivo markdown con formato:");
-    console.error("  ## Nombre de seccion");
-    console.error("  1. Titulo del capitulo 1");
-    console.error("  2. Titulo del capitulo 2");
-    process.exit(1);
-  }
+  if (!fs.existsSync(INDEX_PATH)) { console.error(`Error: Indice no encontrado: ${INDEX_PATH}`); process.exit(1); }
 
-  console.log("Real Media Search - Buscador de medios educativos");
+  console.log("Real Media Search v2.0 - Buscador MEGA-INTENSIVO");
   console.log("=".repeat(55));
-  console.log(`Fuentes: Wikimedia Commons, Internet Archive, YouTube`);
-  console.log(`Indice:   ${INDEX_PATH}`);
-  console.log(`Salida:   ${OUT_DIR}`);
+  console.log("Fuentes: Wikimedia + Openverse + Video + Internet Archive + YouTube");
+  console.log(`Indice: ${INDEX_PATH}`);
+  console.log(`Salida: ${OUT_DIR}`);
   if (args.chapter) console.log(`Capitulo: ${args.chapter}`);
-  if (args.noCache) console.log("Cache:    desactivada");
-  if (args.sources) console.log(`Fuentes:  ${args.sources.join(", ")}`);
+  if (args.noCache) console.log("Cache: desactivada");
   console.log("");
 
-  const indexMarkdown = fs.readFileSync(INDEX_PATH, "utf8");
-  let chapters = parseIndex(indexMarkdown);
-  if (!chapters.length) {
-    console.error("Error: No se encontraron capitulos en el indice.");
-    process.exit(1);
-  }
-  console.log(`${chapters.length} capitulos encontrados en el indice.\n`);
-
-  if (args.chapter) {
-    chapters = chapters.filter((c) => c.number === args.chapter);
-    if (!chapters.length) { console.log(`Capitulo ${args.chapter} no encontrado.`); process.exit(1); }
-  }
+  const chapters = parseIndex(fs.readFileSync(INDEX_PATH, "utf8")).filter((c) => !args.chapter || c.number === args.chapter);
+  if (!chapters.length) { console.error("No se encontraron capitulos."); process.exit(1); }
+  console.log(`${chapters.length} capitulos a procesar.\n`);
 
   const cache = args.noCache ? {} : loadCache(CACHE_PATH);
-  const results = [];
-  const errors = [];
+  const results = [], errors = [];
 
   for (let i = 0; i < chapters.length; i++) {
-    const chapter = chapters[i];
-    const cacheKey = String(chapter.number);
-
-    if (!args.noCache && cache[cacheKey]) {
-      console.log(`  [${String(chapter.number).padStart(3, "0")}] Cache hit: ${chapter.title}`);
-      results.push(cache[cacheKey]);
-      continue;
-    }
-
-    try {
-      const result = await searchChapter(chapter, args.sources);
-      if (!args.noCache) { cache[cacheKey] = result; saveCache(CACHE_PATH, cache); }
-      results.push(result);
-    } catch (e) {
-      console.error(`  [${String(chapter.number).padStart(3, "0")}] ERROR: ${e.message}`);
-      errors.push({ chapter: chapter.number, title: chapter.title, error: e.message });
-    }
-
+    const ch = chapters[i], key = String(ch.number);
+    if (!args.noCache && cache[key]) { console.log(`  [${String(ch.number).padStart(3, "0")}] Cache: ${ch.title}`); results.push(cache[key]); continue; }
+    try { const r = await searchChapter(ch, args.sources); if (!args.noCache) { cache[key] = r; saveCache(CACHE_PATH, cache); } results.push(r); }
+    catch (e) { console.error(`  ERROR: ${e.message}`); errors.push({ chapter: ch.number, error: e.message }); }
     if (i < chapters.length - 1) await sleep(args.delay);
   }
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(RESULT_PATH, JSON.stringify(results, null, 2), "utf8");
-  fs.writeFileSync(MD_PATH, generateMarkdown(results), "utf8");
+  fs.writeFileSync(path.join(OUT_DIR, "real_media.md"), generateMarkdown(results), "utf8");
 
-  const stats = { total: results.length, wikimedia: 0, archive: 0, youtube: 0 };
+  const stats = { total: results.length, wikimedia: 0, openverse: 0, wmv: 0, archive: 0, yt: 0, videos: 0 };
   for (const r of results) {
     if (r.sources.wikimedia && r.sources.wikimedia.items) stats.wikimedia += r.sources.wikimedia.items.length;
-    if (r.sources.internetarchive && r.sources.internetarchive.items) stats.archive += r.sources.internetarchive.items.length;
-    if (r.sources.youtube && r.sources.youtube.search_url) stats.youtube += 1;
+    if (r.sources.openverse && r.sources.openverse.items) stats.openverse += r.sources.openverse.items.length;
+    if (r.sources.wikimedia_video && r.sources.wikimedia_video.items) { stats.wmv += r.sources.wikimedia_video.items.length; stats.videos += r.sources.wikimedia_video.items.filter((x) => x.type === "video").length; }
+    if (r.sources.internetarchive && r.sources.internetarchive.items) { stats.archive += r.sources.internetarchive.items.length; stats.videos += r.sources.internetarchive.items.filter((x) => x.embed_url).length; }
+    if (r.sources.youtube && r.sources.youtube.search_url) stats.yt += 1;
   }
-
   console.log("");
   console.log("=".repeat(55));
-  console.log("Resultados:");
-  console.log(`  Capitulos procesados:   ${results.length}`);
-  console.log(`  Imagenes Wikimedia:     ${stats.wikimedia}`);
-  console.log(`  Internet Archive:       ${stats.archive}`);
-  console.log(`  Capitulos con YouTube:  ${stats.youtube}`);
-  if (errors.length) console.log(`  Errores:                ${errors.length}`);
-  console.log("");
-  console.log(`JSON:     ${RESULT_PATH}`);
-  console.log(`Markdown: ${MD_PATH}`);
-
-  if (errors.length) {
-    console.log("\nErrores:");
-    for (const e of errors) console.log(`  Capitulo ${e.chapter}: ${e.error}`);
-  }
+  console.log(`Capitulos: ${stats.total} | Wikimedia: ${stats.wikimedia} | Openverse: ${stats.openverse} | Videos WM: ${stats.wmv} | Archive: ${stats.archive} | Videos embebibles: ${stats.videos} | YouTube: ${stats.yt}`);
+  if (errors.length) { console.log(`\nErrores: ${errors.length}`); for (const e of errors) console.log(`  ${e.chapter}: ${e.error}`); }
 }
 
 main().catch((e) => { console.error("Error fatal:", e.message); process.exit(1); });
