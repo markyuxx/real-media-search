@@ -1,0 +1,26 @@
+[
+  {
+    "number": 1,
+    "title": "Introduccion a la materia",
+    "book": "Fundamentos",
+    "domain": "fundamentos",
+    "sources": {
+      "wikimedia": {
+        "label": "Diagrama / foto libre",
+        "license": "CC / Public Domain",
+        "items": []
+      },
+      "internetarchive": {
+        "label": "Manual / documento historico",
+        "license": "Variable / Dominio publico",
+        "items": []
+      },
+      "youtube": {
+        "label": "Video educativo / animacion",
+        "license": "Standard YouTube",
+        "search_url": "https://www.youtube.com/results?search_query=Introduccion+a+la+materia+engineering+animation",
+        "search_url_es": "https://www.youtube.com/results?search_query=Introduccion+a+la+materia+engineering+animation"
+      }
+    }
+  }
+]

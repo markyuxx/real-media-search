@@ -1,0 +1,38 @@
+{
+  "name": "real-media-search",
+  "version": "1.0.0",
+  "description": "Busca imagenes, diagramas, videos y documentos historicos en Wikimedia Commons, YouTube e Internet Archive sin usar IA generativa. Ideal para proyectos educativos, documentacion tecnica y libros vivos.",
+  "main": "bin/search-real-media.js",
+  "bin": {
+    "search-real-media": "./bin/search-real-media.js"
+  },
+  "scripts": {
+    "search": "node bin/search-real-media.js"
+  },
+  "keywords": [
+    "media-search",
+    "wikimedia",
+    "youtube",
+    "internet-archive",
+    "educational",
+    "open-source",
+    "attribution",
+    "no-ai",
+    "real-media",
+    "documentation"
+  ],
+  "author": "Marco Fernandez <marcofernandez967@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markyuxx/real-media-search.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "bin/",
+    "ejemplo/",
+    "README.md"
+  ]
+}
